@@ -1,0 +1,11 @@
+Thumbs.db
+classes/
+resource/
+tmp/
+temp/
+*.iws
+*.mp3
+*.swf
+*.swc
+*.ogg
+*.wav

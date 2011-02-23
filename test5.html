@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+	<title>Test5</title>
+	
+	<script src="js/stdout.js"></script>
+	<script src="js/utils.js"></script>
+	<script src="js/test5.js"></script>
+</head>
+<body>
+	<eq id="eq1">
+		<var name="x" type="int"></var>
+		<func name="f" type="int">
+			<var name="x" type="int"></var>
+		</func>
+	</eq>
+
+	<eq id="target">
+		<var name="x" type="int"></var>
+		<func name="f" type="int">
+			<func name="f" type="int">
+				<var name="x" type="int"></var>
+			</func>
+		</func>
+	</eq>
+</body>
+</html>
