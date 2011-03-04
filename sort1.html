@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html;charset=UTF-8">
+	<title>Sort1</title>
+	
+	<script src="js/stdout.js"></script>
+	<script src="js/utils.js"></script>
+	<script src="js/sort1.js"></script>
+</head>
+<body>
+	<!-- 証明すること -->
+	<eq id="target">
+		<func name="isSorted" type="boolean">
+			<func name="sortInner" type="Array">
+				<var name="ary" type="Array"></var>
+			</func>
+		</func>
+		<const value="true" type="boolean"></const>
+	</eq>
+
+	<!-- 等式 -->
+	<eqs id="eqs">
+		<eq><!-- ソート済みかどうか -->
+			<func name="isSorted" type="boolean">
+				<var name="ary" type="Array"></var>
+			</func>
+			<func name="if" type="boolean">
+				<func name="lt" type="boolean">
+					<func name="len" type="int">
+						<var name="ary" type="Array"></var>
+					</func>
+					<const value="2" type="int"></const>
+				</func>
+				<const value="true" type="boolean"></const>
+				<func name="and" type="boolean">
+					<func name="lt" type="boolean">
+						<func name="tail" type="element">
+							<func name="head" type="Array">
+								<var name="ary" type="Array"></var>
+							</func>
+						</func>
+						<func name="tail" type="element">
+							<var name="ary" type="Array"></var>
+						</func>
+					</func>
+					<func name="isSorted" type="boolean">
+						<func name="head" type="element">
+							<var name="ary" type="Array"></var>
+						</func>
+					</func>
+				</func>
+			</func>
+		</eq>
+
+		<eq><!-- ソートアルゴリズム -->
+			<func name="sortInner" type="Array">
+				<var name="ary" type="Array"></var>
+			</func>
+			<func name="if" type="Array">
+				<func name="lt" type="boolean">
+					<func name="len" type="int">
+						<var name="ary" type="Array"></var>
+					</func>
+					<const value="2" type="int"></const>
+				</func>
+				<var name="ary" type="Array"></var>
+				<func name="if" type="Array">
+					<func name="lt" type="boolean">
+						<func name="tail" type="element">
+							<func name="head" type="Array">
+								<var name="ary" type="Array"></var>
+							</func>
+						</func>
+						<func name="tail" type="element">
+							<var name="ary" type="Array"></var>
+						</func>
+					</func>
+					<var name="ary" type="Array"></var>
+					<func name="append" type="Array">
+						<func name="sortInner" type="Array">
+							<func name="head" type="Array">
+								<func name="swap" type="Array">
+									<var name="ary" type="Array"></var>
+								</func>
+							</func>
+						</func>
+						<func name="tail" type="element">
+							<func name="head" type="Array">
+								<var name="ary" type="Array"></var>
+							</func>
+						</func>
+					</func>
+				</func>
+			</func>
+		</eq>
+
+		<eq><!-- head はソート済み -->
+			<func name="isSorted" type="boolean">
+				<func name="head" type="Array">
+					<var name="ary" type="Array"></var>
+				</func>
+			</func>
+			<const value="true" type="boolean"></const>
+		</eq>
+
+		<eq><!-- 長さn-1は成立する（数学的帰納法）-->
+			<func name="isSorted" type="boolean">
+				<func name="sortInner" type="Array">
+					<func name="head" type="Array">
+						<var name="ary" type="Array"></var>
+					</func>
+				</func>
+			</func>
+			<const value="true" type="boolean"></const>
+		</eq>
+
+		<!-- 公式・定義・公理 -->
+		<!-- if -->
+		<eq>
+			<func name="if" type="*">
+				<const value="true" type="boolean"></const>
+				<var name="a" type="*"></var>
+				<var name="b" type="*"></var>
+			</func>
+			<var name="a" type="*"></var>
+		</eq>
+
+		<eq>
+			<func name="if" type="*">
+				<const value="false" type="boolean"></const>
+				<var name="a" type="*"></var>
+				<var name="b" type="*"></var>
+			</func>
+			<var name="b" type="*"></var>
+		</eq>
+
+		<!-- swap -->
+		<eq><!-- 2つ以上前は同じ -->
+			<func name="head" type="Array">
+				<func name="head" type="Array">
+					<func name="swap" type="Array">
+						<var name="ary" type="Array"></var>
+					</func>
+				</func>
+			</func>
+			<func name="head" type="Array">
+				<func name="head" type="Array">
+					<var name="ary" type="Array"></var>
+				</func>
+			</func>
+		</eq>
+
+		<!-- append -->
+		<eq>
+			<func name="head" type="element">
+				<func name="append" type="Array">
+					<var name="ary" type="Array"></var>
+					<var name="v" type="element"></var>
+				</func>
+			</func>
+			<var name="ary" type="Array"></var>
+		</eq>
+
+		<eq>
+			<func name="tail" type="element">
+				<func name="append" type="Array">
+					<var name="ary" type="Array"></var>
+					<var name="v" type="element"></var>
+				</func>
+			</func>
+			<var name="v" type="element"></var>
+		</eq>
+	</eqs>
+</body>
+</html>
