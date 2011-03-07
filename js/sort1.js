@@ -50,7 +50,10 @@ window.onload = function() {
 //        console.log("nextTargets", nextTargets);
         targets.push(nextTargets[1]);
 
-        // TODO targets[4] の if (len(ary) == 2) の中の len(ary) == 2 が true に置換できる
+        // targets[4] の if (len(ary) == 2) の中の len(ary) == 2 が true に置換できる
+        nextTargets = findAndRemoveSameCondInIf(targets[4]);
+        console.log("nextTargets", nextTargets);
+        targets.push(nextTargets[0]);
 
         // デバッグ出力
         printEqs(targets, eqs);
@@ -130,6 +133,52 @@ window.onload = function() {
             }
         }
         return false;
+    }
+
+    function findAndRemoveSameCondInIf(target) {
+        var xpath = "*//func[@name='if']";
+        var founds = cloneXpathFounds(document.evaluate(xpath, target, null, 5, null));
+
+        var eqs = [];
+        for (var i = 0; i < founds.length; i++) {
+            pushAll(eqs, removeSameCondInIf(target, founds[i]));
+        }
+        return eqs;
+    }
+
+    /** if (A) { B } の時、Bの中にAと同じ物が現れたら true / false に置き換える */
+    function removeSameCondInIf(target, ifTerm) {
+        var ifCond = ifTerm.children[0];
+        var ifCondStr = nodeToString(ifCond);
+        var newTargets = [];
+
+        function replace(thenTerm, replaceToValue, mustBeContains) {
+            var thenTermStr = nodeToString(thenTerm);
+            if (thenTermStr == ifCondStr) {
+                // 置換先の定数項
+                var constTerm = document.createElement("const");
+                constTerm.setAttribute("value", "" + replaceToValue);
+                constTerm.setAttribute("type", "boolean");
+
+                // 置換
+                var thenTermParent = thenTerm.parentNode;
+                thenTermParent.replaceChild(constTerm, thenTerm);
+                newTargets.push(target.cloneNode(true));
+                thenTermParent.replaceChild(thenTerm, constTerm);
+            } else {
+                if (mustBeContains || thenTermStr.indexOf(ifCondStr) != -1) {
+                    // 子供をたどる
+                    var children = thenTerm.children;
+                    for (var i = 0; i < children.length; i++) {
+                        replace(children[i], replaceToValue, true);
+                    }
+                }
+            }
+        }
+        replace(ifTerm.children[1], true, false);
+        replace(ifTerm.children[2], false, false);
+
+        return newTargets;
     }
 
     function findIfSwapIf(target) {
