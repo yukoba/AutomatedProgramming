@@ -1,18 +1,59 @@
 // XPath を使って、式変形を行う。
 
 window.onload = function() {
-    main();
-//    test();
+//    main();
+    runByActions();
 
-    function test() {
-        var target = document.getElementById("eq1");
-        var eq = target.cloneNode(true);
-        var newEqs = replaceByEq(target, eq.children[1], eq.children[0]);
+    function runByActions() {
+        // 証明する式
+        var targets = [document.getElementById("target")];
+        // 公式・定義
+        var eqs = document.getElementById("eqs").children;
+
+        printEqs(targets, eqs);
+
+        var actions = [[0, 1, true], [0, 0, true]];
+
+        for (var k = 0; k < actions.length; k++) {
+            // x != f(f(x)) を x = f(x) で変形
+            var i, j, nextTargets = [];
+
+            var target = targets[actions[k][0]];
+            var eq = eqs[actions[k][1]];
+            var left2right = actions[k][2];
+
+            if (left2right) {
+                var newEqs = replaceByEq(target, eq.children[0], eq.children[1]);
+                pushAll(nextTargets, newEqs);
+            } else {
+                newEqs = replaceByEq(target, eq.children[1], eq.children[0]);
+                pushAll(nextTargets, newEqs);
+            }
+            console.log("newEqs", newEqs);
+
+            pushAll(nextTargets, targets);
+            targets = uniqueNodes(nextTargets);
+
+            // 矛盾を探す
+            if (hasContradiction(targets)) {
+                console.log("矛盾を発見！成功しました！ k = " + k);
+                break;
+            }
+        }
+
+        nextTargets = findIfSwapIf(targets[0]);
+//        console.log(nextTargets);
+        targets.push(nextTargets[1]);
+
+
+        nextTargets = findIfSwapIf(nextTargets[1]);
+//        console.log("nextTargets", nextTargets);
+        targets.push(nextTargets[1]);
+
+        // TODO targets[4] の if (len(ary) == 2) の中の len(ary) == 2 が true に置換できる
 
         // デバッグ出力
-        for (var i = 0; i < newEqs.length; i++) {
-            console.log(i, newEqs[i]);
-        }
+        printEqs(targets, eqs);
     }
 
     function main() {
@@ -21,7 +62,9 @@ window.onload = function() {
         // 公式・定義
         var eqs = document.getElementById("eqs").children;
 
-        for (var k = 0; k < 2; k++) {
+        printEqs(targets, eqs);
+
+        for (var k = 0; k < 1; k++) {
             // x != f(f(x)) を x = f(x) で変形
             var i, j, nextTargets = [];
             for (j = 0; j < targets.length; j++) {
@@ -58,9 +101,21 @@ window.onload = function() {
         }
 
         // デバッグ出力
+        printEqs(targets, eqs);
+    }
+
+    function printEqs(targets, eqs) {
+        console.group("target");
         for (i = 0; i < targets.length; i++) {
             console.log(i, targets[i]);
         }
+        console.groupEnd();
+
+        console.group("eq");
+        for (i = 0; i < eqs.length; i++) {
+            console.log(i, eqs[i]);
+        }
+        console.groupEnd();
     }
 
     /** 矛盾を探す */
@@ -77,23 +132,79 @@ window.onload = function() {
         return false;
     }
 
+    function findIfSwapIf(target) {
+        var xpath = "*//func[@name='if']";
+        var founds = cloneXpathFounds(document.evaluate(xpath, target, null, 5, null));
+
+        var eqs = [];
+        for (var i = 0; i < founds.length; i++) {
+            eqs.push(swapIf(target, founds[i]));
+        }
+        return eqs;
+    }
+
+    /** if と その親の関数を交換 */
+    function swapIf(target, ifTerm) {
+        var parent = ifTerm.parentNode;
+        var ifTermIdx = getNodeIndexInParent(ifTerm);
+        var origIfTermChild1 = ifTerm.children[1], origIfTermChild2 = ifTerm.children[2];
+
+        // parent clone を作る
+        var parent1 = parent.cloneNode(true);
+        var parent2 = parent.cloneNode(true);
+
+        // parent - ifTerm - parent clone - ifTermの子 という状態を作る
+        parent1.replaceChild(origIfTermChild1.cloneNode(true), parent1.children[ifTermIdx]);
+        parent2.replaceChild(origIfTermChild2.cloneNode(true), parent2.children[ifTermIdx]);
+        ifTerm.replaceChild(parent1, origIfTermChild1);
+        ifTerm.replaceChild(parent2, origIfTermChild2);
+
+        // クローンして戻り値を作成
+        var ifTermClone = ifTerm.cloneNode(true);
+        var resultTarget;
+        if (target === parent) {
+            resultTarget = ifTermClone;
+        } else {
+            // parentの親 - ifTerm という状態を作り、間の parent を抜く
+            var parentParentNode = parent.parentNode;
+            parentParentNode.replaceChild(ifTermClone, parent);
+            resultTarget = target.cloneNode(true);
+            parentParentNode.replaceChild(parent, ifTermClone);
+        }
+
+        // 元に戻す。やることは ifTerm - parent clone - ifTermの子 の parent clone を除去
+        ifTerm.replaceChild(origIfTermChild1, parent1);
+        ifTerm.replaceChild(origIfTermChild2, parent2);
+
+        return resultTarget;
+    }
+
     /** target に対して、fromTerm -> toTerm の変形を施す */
     function replaceByEq(target, fromTerm, toTerm) {
         // from を XPath に変換する
         function convertFromTerm2XPath(fromTerm) {
-            return follow(fromTerm, 0).substring(1);
+            return follow(fromTerm, -1).substring(1);
 
             function follow(term, pos) {
                 var s;
                 if (term.tagName == "VAR") {
-                    s = '/*[position()=' + (pos+1) + ' and ' +
-                            '@type="' + term.getAttribute("type") + '"]';
+                    s = '/*[';
+                    if (pos >= 0) {
+                        s += 'position()=' + (pos+1) + ' and ';
+                    }
+                    s += '@type="' + term.getAttribute("type") + '"]';
                 } else if (term.tagName == "FUNC") {
-                    s = '/func[position()=' + (pos+1) + ' and '+
-                            '@name="' + term.getAttribute("name") + '"]';
+                    s = '/func[';
+                    if (pos >= 0) {
+                        s += 'position()=' + (pos+1) + ' and '
+                    }
+                    s += '@name="' + term.getAttribute("name") + '"]';
                 } else if (term.tagName == "CONST") {
-                    s = '/const[position()=' + (pos+1) + ' and ' +
-                            '@value="' + term.getAttribute("value") + '" and '+
+                    s = '/const[';
+                    if (pos >= 0) {
+                        s += 'position()=' + (pos+1) + ' and '
+                    }
+                    s += '@value="' + term.getAttribute("value") + '" and '+
                             '@type="' + term.getAttribute("type") + '"]';
                 }
 
@@ -105,7 +216,7 @@ window.onload = function() {
                 return s;
             }
         }
-        var fromXpath = "//" + convertFromTerm2XPath(fromTerm);
+        var fromXpath = "*//" + convertFromTerm2XPath(fromTerm);
 
         // 変換元を探す
         console.log("fromXpath", fromXpath);

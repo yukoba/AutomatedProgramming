@@ -11,10 +11,20 @@
 <body>
 	<!-- 証明すること -->
 	<eq id="target">
-		<func name="isSorted" type="boolean">
-			<func name="sortInner" type="Array">
-				<var name="ary" type="Array"></var>
+		<!-- len(ary) == n ? isSorted(sortInner(ary)) : true -->
+		<func name="if" type="boolean">
+			<func name="eq" type="boolean">
+				<func name="len" type="int">
+					<var name="ary" type="Array"></var>
+				</func>
+				<const value="n" type="int"></const>
 			</func>
+			<func name="isSorted" type="boolean">
+				<func name="sortInner" type="Array">
+					<var name="ary" type="Array"></var>
+				</func>
+			</func>
+			<const value="true" type="boolean"></const>
 		</func>
 		<const value="true" type="boolean"></const>
 	</eq>
@@ -96,28 +106,48 @@
 		</eq>
 
 		<eq><!-- head はソート済み -->
-			<func name="isSorted" type="boolean">
-				<func name="head" type="Array">
-					<var name="ary" type="Array"></var>
+			<!-- len(ary) == n  ? isSorted(head(ary)) : true -->
+			<func name="if" type="boolean">
+				<func name="eq" type="boolean">
+					<func name="len" type="int">
+						<var name="ary" type="Array"></var>
+					</func>
+					<const value="n" type="int"></const>
 				</func>
+				<func name="isSorted" type="boolean">
+					<func name="head" type="Array">
+						<var name="ary" type="Array"></var>
+					</func>
+				</func>
+				<const value="true" type="boolean"></const>
 			</func>
 			<const value="true" type="boolean"></const>
 		</eq>
 
 		<eq><!-- 長さn-1は成立する（数学的帰納法）-->
-			<func name="isSorted" type="boolean">
-				<func name="sortInner" type="Array">
-					<func name="head" type="Array">
+			<!-- len(ary) < n ? isSorted(sortInner(head(ary))) : true -->
+			<func name="if" type="boolean">
+				<func name="lt" type="boolean">
+					<func name="len" type="int">
 						<var name="ary" type="Array"></var>
 					</func>
+					<const value="n" type="int"></const>
 				</func>
+				<func name="isSorted" type="boolean">
+					<func name="sortInner" type="Array">
+						<func name="head" type="Array">
+							<var name="ary" type="Array"></var>
+						</func>
+					</func>
+				</func>
+				<const value="true" type="boolean"></const>
 			</func>
 			<const value="true" type="boolean"></const>
 		</eq>
 
 		<!-- 公式・定義・公理 -->
 		<!-- if -->
-		<eq>
+		<eq><!-- if(true, a, b) = a -->
 			<func name="if" type="*">
 				<const value="true" type="boolean"></const>
 				<var name="a" type="*"></var>
@@ -126,7 +156,7 @@
 			<var name="a" type="*"></var>
 		</eq>
 
-		<eq>
+		<eq><!-- if(false, a, b) = a -->
 			<func name="if" type="*">
 				<const value="false" type="boolean"></const>
 				<var name="a" type="*"></var>
@@ -137,6 +167,7 @@
 
 		<!-- swap -->
 		<eq><!-- 2つ以上前は同じ -->
+			<!-- head(head(swap(ary))) = head(head(ary)) -->
 			<func name="head" type="Array">
 				<func name="head" type="Array">
 					<func name="swap" type="Array">
@@ -152,7 +183,7 @@
 		</eq>
 
 		<!-- append -->
-		<eq>
+		<eq><!-- head(append(ary, v)) = ary -->
 			<func name="head" type="element">
 				<func name="append" type="Array">
 					<var name="ary" type="Array"></var>
@@ -162,7 +193,7 @@
 			<var name="ary" type="Array"></var>
 		</eq>
 
-		<eq>
+		<eq><!-- tail(append(ary, v)) = v -->
 			<func name="tail" type="element">
 				<func name="append" type="Array">
 					<var name="ary" type="Array"></var>

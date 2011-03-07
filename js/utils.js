@@ -29,3 +29,19 @@ function uniqueArray(ary) {
     return result;
 }
 
+function getNodeIndexInParent(node) {
+    var children = node.parentNode.children;
+    for (var i = 0; i < children.length; i++) {
+        if (node === children[i]) return i;
+    }
+    return -1;
+}
+
+function cloneXpathFounds(founds) {
+    var ary = [];
+    var ele;
+    while ((ele = founds.iterateNext()) != null) {
+        ary.push(ele);
+    }
+    return ary;
+}
