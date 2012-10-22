@@ -16,11 +16,13 @@ window.onload = function() {
         var eqs = document.getElementById("eqs").children;
 
         printHeader("証明対象");
-        printEqs(targets, eqs);
+        var lr = createLeftRightPanel();
+        printEqs(targets, eqs, lr[1]);
 
         var target = targets[0], newTargets;
         for (var k = 0; k < 50; k++) {
-            printHeader("Iterate " + k);
+            printHeader("変換 " + (k + 1) + " 回目");
+            lr = createLeftRightPanel();
 
             var newTargetCreated = false;
 
@@ -28,7 +30,7 @@ window.onload = function() {
             if (!newTargetCreated) {
                 newTargets = findAndRemoveSameCondInIf(target);
                 if (newTargets.length > 0) {
-                    printHtml("ifの条件をtrue/falseに置換しました");
+                    printHtml("if の条件を true/false に置換しました", lr[0]);
                     target = newTargets[0];
                     newTargetCreated = true;
                 }
@@ -43,8 +45,8 @@ window.onload = function() {
                     var eq = eqs[i];
                     newTargets = replaceByEq(target, eq.children[0], eq.children[1], true);
                     if (newTargets.length > 0) {
-                        printHtml("下記の式を代入（木を複雑化しない式変形）");
-                        printXml(eq);
+                        printHtml("下記の式を代入（木を複雑化しない式変形）", lr[0]);
+                        printXml(eq, lr[0]);
                         target = newTargets[0];
                         newTargetCreated = true;
                         break;
@@ -55,7 +57,7 @@ window.onload = function() {
             if (!newTargetCreated) {
                 newTargets = findIfSwapIf(target);
                 if (newTargets.length > 0) {
-                    printHtml("ifの親関数をifの中に入れました。");
+                    printHtml("if の親関数を if の中に入れました。", lr[0]);
                     target = newTargets[0];
                     newTargetCreated = true;
                 }
@@ -68,8 +70,8 @@ window.onload = function() {
                     // TODO なぜ、isUseRootReplace = false が必要？
                     newTargets = replaceByEq(target, eq.children[0], eq.children[1], false);
                     if (newTargets.length > 0) {
-                        printHtml("下記の式を代入（木を複雑化する方の式変形）");
-                        printXml(eq);
+                        printHtml("下記の式を代入（木を複雑化する方の式変形）", lr[0]);
+                        printXml(eq, lr[0]);
                         target = newTargets[0];
                         newTargetCreated = true;
                         break;
@@ -78,29 +80,28 @@ window.onload = function() {
             }
 
             if (!newTargetCreated) {
-                printHtml("Cannot change more, k = " + k);
+                printHtml("Cannot change more, k = " + k, lr[0]);
                 break;
             }
 
             targets = [target];
-
-            printHtml("変換結果");
-            printEqs(targets, []);
+            printHtml("変換結果", lr[1]);
+            printEqs(targets, [], lr[1]);
 
             // 矛盾チェック
             if (hasContradiction(targets)) {
-                printHtml("成功：背理法で矛盾を発見！式変形の回数は " + (k + 1) + " 回です。");
+                printHtml("成功：背理法で矛盾を発見！式変形の回数は " + (k + 1) + " 回です。", null);
                 break;
             }
         }
-        printHtml("終了");
+        printHtml("終了", null);
 
         prettyPrint(); // Google Code Prettifier
     }
 
-    function printEqs(targets, eqs) {
+    function printEqs(targets, eqs, parentDom) {
         for (var i = 0; i < targets.length; i++) {
-            printXml(targets[i]);
+            printXml(targets[i], parentDom);
         }
 
         /*

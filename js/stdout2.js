@@ -27,21 +27,47 @@ function print(strs) {
 }
 
 function printHeader(html) {
-    printHtml("<h1>" + html + "</h1>");
+    printHtml("<h1>" + html + "</h1>", null);
 }
 
-function printHtml(html) {
+function createLeftRightPanel() {
+    var table = document.createElement("table");
+    var tbody = document.createElement("tbody");
+    var tr = document.createElement("tr");
+    var td1 = document.createElement("td");
+    var td2 = document.createElement("td");
+
+    table.setAttribute("style", "width: 100%");
+    td1.setAttribute("style", "width: 50%");
+    td2.setAttribute("style", "width: 50%");
+    tr.setAttribute("valign", "top");
+
+    table.appendChild(tbody);
+    tbody.appendChild(tr);
+    tr.appendChild(td1);
+    tr.appendChild(td2);
+    document.body.appendChild(table);
+
+    return [td1, td2];
+}
+
+function appendHtml(html, parentDom) {
+    (parentDom ? parentDom : document.body).innerHTML += html;
+}
+
+function printHtml(html, parentDom) {
     var stdout = document.createElement("div");
-    document.body.appendChild(stdout);
+    (parentDom ? parentDom : document.body).appendChild(stdout);
     stdout.innerHTML = html;
 }
 
-function printXml(dom) {
+function printXml(dom, parentDom) {
     var str = formatXml(xmlSerializer.serializeToString(dom));
 
     var stdout = document.createElement("pre");
+//    stdout.setAttribute("class", "prettyprint linenums lang-xml");
     stdout.setAttribute("class", "prettyprint lang-xml");
-    document.body.appendChild(stdout);
+    (parentDom ? parentDom : document.body).appendChild(stdout);
 
     $(stdout).text(str);
 }
