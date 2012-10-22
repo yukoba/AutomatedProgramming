@@ -1,15 +1,15 @@
 // XPath を使って、式変形を行う。
 
 window.onload = function() {
-    if (!document.evaluate) {
-        alert("Internet Explorer では動作しません");
-        return;
-    }
-
     main();
-    prettyPrint(); // Google Code Prettifier
 
     function main() {
+        // IE チェック
+        if (!document.evaluate) {
+            alert("Internet Explorer では動作しません");
+            return;
+        }
+
         // 証明する式
         var targets = [document.getElementById("target")];
         // 公式・定義
@@ -94,6 +94,8 @@ window.onload = function() {
             }
         }
         printHtml("終了");
+
+        prettyPrint(); // Google Code Prettifier
     }
 
     function printEqs(targets, eqs) {
