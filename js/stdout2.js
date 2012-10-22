@@ -1,3 +1,5 @@
+var xmlSerializer = new XMLSerializer();
+
 function println(str) {
     for (var i = 0; i < arguments.length; i++) {
         print(arguments[i]);

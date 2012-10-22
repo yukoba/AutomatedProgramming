@@ -1,8 +1,11 @@
 // XPath を使って、式変形を行う。
 
-var xmlSerializer = new XMLSerializer();
-
 window.onload = function() {
+    if (!document.evaluate) {
+        alert("Internet Explorer では動作しません");
+        return;
+    }
+
     main();
     prettyPrint(); // Google Code Prettifier
 
