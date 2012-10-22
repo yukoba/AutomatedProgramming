@@ -10,18 +10,20 @@ window.onload = function() {
             return;
         }
 
+        addButtonEventHandler();
+
         // 証明する式
         var targets = [document.getElementById("target")];
         // 公式・定義
         var eqs = document.getElementById("eqs").children;
 
-        printHeader("証明対象");
+//        printHeader("証明対象");
         var lr = createLeftRightPanel();
         printEqs(targets, eqs, lr[1]);
 
         var target = targets[0], newTargets;
         for (var k = 0; k < 50; k++) {
-            printHeader("変換 " + (k + 1) + " 回目");
+//            printHeader("変換 " + (k + 1) + " 回目");
             lr = createLeftRightPanel();
 
             var newTargetCreated = false;

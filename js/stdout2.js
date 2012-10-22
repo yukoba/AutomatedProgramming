@@ -30,6 +30,8 @@ function printHeader(html) {
     printHtml("<h1>" + html + "</h1>", null);
 }
 
+var nextTableIdNo = 0;
+
 function createLeftRightPanel() {
     var table = document.createElement("table");
     var tbody = document.createElement("tbody");
@@ -37,7 +39,11 @@ function createLeftRightPanel() {
     var td1 = document.createElement("td");
     var td2 = document.createElement("td");
 
-    table.setAttribute("style", "width: 100%");
+    if (displayBlockNo == nextTableIdNo)
+        table.setAttribute("style", "width: 100%;");
+    else
+        table.setAttribute("style", "width: 100%; display: none;");
+    table.setAttribute("id", "table" + (nextTableIdNo++));
     td1.setAttribute("style", "width: 50%");
     td2.setAttribute("style", "width: 50%");
     tr.setAttribute("valign", "top");
@@ -113,4 +119,20 @@ function formatXml(xml) {
     });
 
     return formatted;
+}
+
+var displayBlockNo = 0;
+
+function addButtonEventHandler() {
+    $("#backButton").click(function() {
+        $("#table" + displayBlockNo).css("display", "none");
+        displayBlockNo = Math.max(0, displayBlockNo - 1);
+        $("#table" + displayBlockNo).css("display", "");
+    });
+
+    $("#nextButton").click(function() {
+        $("#table" + displayBlockNo).css("display", "none");
+        displayBlockNo = Math.max(0, displayBlockNo + 1);
+        $("#table" + displayBlockNo).css("display", "");
+    });
 }
