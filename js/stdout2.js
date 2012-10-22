@@ -56,7 +56,7 @@ function formatXml(xml) {
     $.each(xml.split('\n'), function(index, node) {
         // 超強引な特例処理！
         if (node == "</const>" || node == "</var>") {
-            formatted = formatted.substring(0, formatted.length - 3) + "/>\n";
+            formatted = formatted.substring(0, formatted.length - 2) + "/>\n";
             if (pad > 0) pad--;
             return;
         }
