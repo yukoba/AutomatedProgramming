@@ -30,7 +30,7 @@ function printHeader(html) {
     printHtml("<h1>" + html + "</h1>", null);
 }
 
-function createLeftRightPanel() {
+function appendTwoColumnTable() {
     var table = document.createElement("table");
     var tbody = document.createElement("tbody");
     var tr = document.createElement("tr");

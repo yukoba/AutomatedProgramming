@@ -16,13 +16,13 @@ window.onload = function() {
         var eqs = document.getElementById("eqs").children;
 
         printHeader("証明対象");
-        var lr = createLeftRightPanel();
+        var lr = appendTwoColumnTable();
         printEqs(targets, eqs, lr[1]);
 
         var target = targets[0], newTargets;
         for (var k = 0; k < 50; k++) {
             printHeader("変換 " + (k + 1) + " 回目");
-            lr = createLeftRightPanel();
+            lr = appendTwoColumnTable();
 
             var newTargetCreated = false;
 
