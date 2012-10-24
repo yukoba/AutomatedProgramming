@@ -1,0 +1,10 @@
+graph {
+	a [label="eq"];
+	b [label="isSorted"];
+	c [label="sortInner"];
+	d [label="ARY" shape="octagon"];
+	e [label="true" shape="box"];
+	a -- b;
+	b -- c -- d;
+	a -- e;
+}

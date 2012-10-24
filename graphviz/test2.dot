@@ -1,0 +1,22 @@
+graph {
+
+a [label="eq"];
+b [label="if"];
+c [label="<"];
+d [label="len"];
+e [label="ARY" shape="octagon"];
+f [label="2" shape="box"];
+g [label="true" shape="box"];
+h [label="true" shape="box" color="red"];
+i [label="true" shape="box"];
+
+a -- b;
+b -- c;
+c -- d;
+d -- e;
+c -- f;
+b -- g [style=dashed];
+b -- h [style=dashed];
+a -- i;
+
+}

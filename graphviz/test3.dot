@@ -1,0 +1,38 @@
+graph {
+
+a [label="eq"];
+b [label="if"];
+c [label="<"];
+d [label="len"];
+e [label="ARY" shape="octagon"];
+f [label="2" shape="box"];
+g [label="true" shape="box"];
+h [label="if" color="red"];
+i [label="<"];
+j [label="head"];
+k [label="tail"];
+l [label="ARY" shape="octagon"];
+m [label="head"];
+n [label="ARY" shape="octagon"];
+o [label="true" shape="box"];
+p [label="true" shape="box"];
+q [label="true" shape="box"];
+
+a -- b;
+b -- c;
+c -- d;
+d -- e;
+c -- f;
+b -- g [style=dashed];
+b -- h [style=dashed];
+h -- i;
+i -- j;
+j -- k;
+k -- l;
+i -- m;
+m -- n;
+h -- o [style=dashed];
+h -- p [style=dashed];
+a -- q;
+
+}
