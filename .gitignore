@@ -4,6 +4,7 @@ classes/
 resource/
 tmp/
 temp/
+out/
 *.iws
 *.mp3
 *.swf
