@@ -8,7 +8,7 @@ class NodeTest {
         def nb = new NodeBuilder()
 
         def n1 = nb.ab(a:1) { cd() }
-        println n1
+        println "n1 = $n1"
 
         //def n2 = nb.ab { cd=1 }
 //        def n2 = {foo a=1 b="abc"} as Node
@@ -22,8 +22,8 @@ class NodeTest {
 
         def e4_2 = removeSpace(e4).split("==")
         def e4_3 = parseFunc(e4_2[0])
-        println e4_2
-        println e4_3
+        println "e4_2 = $e4_2"
+        println "e4_3 = $e4_3"
 
         println replaceNode(e4_3, ["a", "c", "d"], "e");
         println replaceNode(["a", ["a", ["c", "d"]], ["a", ["c", "d"]]], ["a", ["c", "d"]], "e");
@@ -63,7 +63,7 @@ class NodeTest {
         return list
     }
 
-    static def replaceNode(expr, from, to, replaced = [false]) {
+    static def replaceNode(expr, from, to, List replaced = [false]) {
         if (replaced[0])
             return expr
         if (expr == from) {

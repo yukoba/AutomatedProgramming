@@ -137,7 +137,7 @@ class Sort5 {
         return list
     }
 
-    static def replaceNode(expr, from, to, replaced = [false]) {
+    static def replaceNode(expr, from, to, List replaced = [false]) {
         if (replaced[0])
             return expr
         if (expr == from) {
