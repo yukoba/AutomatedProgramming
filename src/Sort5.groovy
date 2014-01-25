@@ -7,22 +7,17 @@ class Sort5 {
     static final NodePrinter nodePrinter = new NodePrinter()
 
     static void main(String[] args) {
-        // exprTexts -> exprs
-        List<Node> eqs = []
-        for (String exprText in exprTexts) {
-            eqs << eqToNode(exprText.split("==").collect { convertExpr(it as String) })
-        }
+        // exprTexts -> eqs
+        def eqs = exprTexts.collect { eqToNode((it as String).split("==").collect { convertExpr(it as String) }) }
+        // 一番最後の式が証明対象
+        def target = eqs.last()
 
-        Node target = eqs[eqs.size() - 1]
-        List<Node> targets = [target]
-
-        List<Node> newTargets
         for (int k = 0; k < 1; k++) {
             def newTargetCreated = false
 
             // if (A) { B } の B の中に A = true を入れる
             if (!newTargetCreated) {
-                newTargets = findAndRemoveSameCondInIf(target)
+                def newTargets = findAndRemoveSameCondInIf(target)
                 if (newTargets.size() > 0) {
                     println "if の条件を true/false に置換しました"
                     target = newTargets[0]
@@ -30,11 +25,11 @@ class Sort5 {
                 }
             }
 
+            // 通常の式変形
             if (!newTargetCreated) {
-                // 式変形
                 for (int i = 0; i < eqs.size(); i++) {
                     def eq = eqs[i]
-                    newTargets = replaceByEq(target, eq.children()[0] as Node, eq.children()[1] as Node)
+                    def newTargets = replaceByEq(target, eq.children()[0] as Node, eq.children()[1] as Node)
                     if (newTargets.size() > 0) {
                         println "下記の式を代入"
                         println eq
@@ -50,12 +45,11 @@ class Sort5 {
                 break
             }
 
-            targets = [target]
             println "変換結果"
-            println targets
+            println target
 
             // 矛盾チェック
-            if (hasContradiction(targets)) {
+            if (hasContradiction([target])) {
                 println "成功：背理法で矛盾を発見！式変形の回数は ${k + 1}回です。"
                 break
             }
