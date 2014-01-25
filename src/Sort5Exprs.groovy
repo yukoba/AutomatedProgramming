@@ -45,6 +45,7 @@ class Sort5Exprs {
             sortInner: "List",
             isSorted: "Boolean",
 
+            if: "Boolean",
             tail: "List",
             head: "Element",
             TRUE: "Boolean",

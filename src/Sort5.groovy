@@ -163,15 +163,14 @@ class Sort5 {
                     return false
                 }
             } else {
-                var2node[fromName] = found // 変数を2回使っている場合、未対応
+                var2node[fromName] = found // TODO 変数を2回使っている場合、未対応
             }
+            return true
         }
 
         def fromChildren = from.children()
         def foundChildren = found.children()
-        if (isVar(fromName) && fromChildren.size() != foundChildren.size()) {
-            return false
-        }
+        if (fromChildren.size() != foundChildren.size()) return false
         for (int i = 0; i < fromChildren.size(); i++) {
             def isOK = fillVar2node(var2node, fromChildren[i] as Node, foundChildren[i] as Node)
             if (!isOK) return false
@@ -185,14 +184,14 @@ class Sort5 {
         def termName = term.name()
         if (isVar(termName)) {
             // 変数を置き換える
-            return (termName in var2node ? var2node[termName] : term).clone() as Node
+            return (termName in var2node ? var2node[termName]: term).clone() as Node
         } else {
             // 子供のない浅いコピーを作る
             def result = new Node(null, termName, term.attributes().clone())
 
             // 子供を埋める
             for (def child in term.children()) {
-                result.appendNode(replaceVar(child as Node, var2node))
+                result.append(replaceVar(child as Node, var2node))
             }
             return result
         }

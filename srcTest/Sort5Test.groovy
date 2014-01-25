@@ -60,4 +60,36 @@ class Sort5Test {
             println found
         }
     }
+
+    @Test
+    void testFillVar2node() {
+        def expr1 = "tail(tail(list0))"
+        def expr2 = "tail(any0)"
+        def node1 = convertExpr(expr1)
+        def node2 = convertExpr(expr2)
+
+        def var2node = new HashMap()
+        def isOK = fillVar2node(var2node, node2, node1)
+        println "isOK = $isOK"
+        var2node.each { key, value -> print "$key: "; println value }
+    }
+
+    @Test
+    void testReplaceVar() {
+        def expr1 = "tail(tail(list0))"
+        def expr2 = "tail(any0)"
+        def expr3 = "len(any0)"
+        def node1 = convertExpr(expr1)
+        def node2 = convertExpr(expr2)
+        def node3 = convertExpr(expr3)
+
+        def var2node = new HashMap()
+        def isOK = fillVar2node(var2node, node2, node1)
+        println "isOK = $isOK"
+        var2node.each { key, value -> print "$key: "; println value }
+
+        def node4 = replaceVar(node3, var2node)
+        print "node4 = "
+        println node4
+    }
 }
