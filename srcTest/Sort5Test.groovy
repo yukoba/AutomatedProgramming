@@ -33,4 +33,31 @@ class Sort5Test {
         println "node = "
         println node
     }
+
+    @Test
+    void testFindAndRemoveSameCondInIf() {
+        def expr = "if(b1, b1, FALSE)"
+        def node = convertExpr(expr)
+        println node
+
+        def newTargets = findAndRemoveSameCondInIf(node)
+        for (def target in newTargets) {
+            println target
+        }
+    }
+
+    @Test
+    void testConvertTermToSearchCond() {
+        def expr1 = "tail(list0)"
+        def expr2 = "len(tail(list0))"
+        def node1 = convertExpr(expr1)
+        def node2 = convertExpr(expr2)
+
+        def searchCond = convertTermToSearchCond(node1)
+        def founds = node2.depthFirst().findAll { isAllTrue(searchCond, it) } as List<Node>
+        println "[Result]"
+        for (def found in founds) {
+            println found
+        }
+    }
 }
