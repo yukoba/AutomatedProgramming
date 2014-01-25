@@ -31,6 +31,6 @@ class Sort5Test {
         println "ary  = $ary"
         println "left = $left"
         println "node = "
-        new NodePrinter().print(node)
+        println node
     }
 }

@@ -82,6 +82,8 @@ class Sort5 {
             any3: "*",
     ]
 
+    static final NodePrinter nodePrinter = new NodePrinter()
+
     static void main(String[] args) {
         new Sort5().test()
     }
@@ -95,7 +97,7 @@ class Sort5 {
             })
         }
 
-        def target = eqs[eqs.size() - 1]
+        List target = eqs[eqs.size() - 1] as List
         List targets = [target]
 
         for (int k = 0; k < 50; k++) {
@@ -141,6 +143,8 @@ class Sort5 {
         }
         return node
     }
+
+    static void println(Node node) { nodePrinter.print(node) }
 
     static String removeSpace(String s) { s.replaceAll(' ', '') }
 }
