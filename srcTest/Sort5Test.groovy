@@ -3,7 +3,7 @@
 import org.junit.Test
 import static org.junit.Assert.*
 
-class NodeTest {
+class Sort5Test {
 	@Test void test() {
         def nb = new NodeBuilder()
 
