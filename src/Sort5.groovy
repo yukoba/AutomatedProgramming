@@ -90,24 +90,22 @@ class Sort5 {
         // exprTexts -> exprs
         List eqs = []
         for (String exprText in exprTexts) {
-            eqs.add(removeSpace(exprText).split("==").collect { convertExprTextToList(it as String) })
+            eqs.add(removeSpace(exprText).split("==").collect {
+                convertExprListToNode(null, convertExprTextToList(it as String))
+            })
         }
 
         def target = eqs[eqs.size() - 1]
         List targets = [target]
 
         for (int k = 0; k < 50; k++) {
-
         }
-
     }
 
-    static String removeSpace(String s) { s.replaceAll(' ', '') }
-
-    static def convertExprTextToList(String s) {
+    static List convertExprTextToList(String s) {
         List list = []
         int start = s.indexOf('(')
-        if (start == -1) return s
+        if (start == -1) return [s]
         int end = s.lastIndexOf(')')
         list.add(s[0..(start - 1)])
 
@@ -139,15 +137,10 @@ class Sort5 {
     static Node convertExprListToNode(Node parent, List list) {
         Node node = new Node(parent, list[0] as String, [type: typeMap[list[0]]])
         for (int i = 1; i < list.size(); i++) {
-            switch (list[i]) {
-                case List:
-                    convertExprListToNode(node, list[i] as List)
-                    break
-                case String:
-                    new Node(node, list[i] as String, [type: typeMap[list[i]]])
-                    break
-            }
+            convertExprListToNode(node, list[i] as List)
         }
         return node
     }
+
+    static String removeSpace(String s) { s.replaceAll(' ', '') }
 }

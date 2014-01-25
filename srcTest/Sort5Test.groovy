@@ -27,7 +27,7 @@ class Sort5Test {
 
         def ary = removeSpace(e6).split("==")
         def left = convertExprTextToList(ary[0])
-        def node = convertExprListToNode(new Node(null, "root"), left as List)
+        def node = convertExprListToNode(null, left)
         println "ary  = $ary"
         println "left = $left"
         println "node = "
