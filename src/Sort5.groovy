@@ -1,4 +1,3 @@
-
 import groovy.transform.TypeChecked
 
 @TypeChecked
@@ -61,9 +60,9 @@ class Sort5 {
             list2: "List",
             list3: "List",
 
-            0: "Int",
-            1: "Int",
-            2: "Int",
+            "0": "Int",
+            "1": "Int",
+            "2": "Int",
 
             b0: "Boolean",
             b1: "Boolean",
@@ -91,7 +90,7 @@ class Sort5 {
         // exprTexts -> exprs
         List eqs = []
         for (String exprText in exprTexts) {
-            eqs.add(removeSpace(exprText).split("==").collect{parseFunc(it as String)})
+            eqs.add(removeSpace(exprText).split("==").collect { convertExprTextToList(it as String) })
         }
 
         def target = eqs[eqs.size() - 1]
@@ -105,12 +104,12 @@ class Sort5 {
 
     static String removeSpace(String s) { s.replaceAll(' ', '') }
 
-    static def parseFunc(String s) {
+    static def convertExprTextToList(String s) {
         List list = []
         int start = s.indexOf('(')
         if (start == -1) return s
         int end = s.lastIndexOf(')')
-        list.add(s[0..(start-1)])
+        list.add(s[0..(start - 1)])
 
         int bracketCount = 0
         StringBuilder sb = new StringBuilder()
@@ -120,7 +119,7 @@ class Sort5 {
                 case ")": bracketCount--; sb.append(s[i]); break;
                 case ",":
                     if (bracketCount == 0) {
-                        list.add(parseFunc(sb.toString()))
+                        list.add(convertExprTextToList(sb.toString()))
                         sb = new StringBuilder()
                     } else {
                         sb.append(s[i])
@@ -133,25 +132,22 @@ class Sort5 {
         }
         assert bracketCount == 0
         if (sb.size() > 0)
-            list.add(parseFunc(sb.toString()))
+            list.add(convertExprTextToList(sb.toString()))
         return list
     }
 
-    static def replaceNode(expr, from, to, List replaced = [false]) {
-        if (replaced[0])
-            return expr
-        if (expr == from) {
-            replaced[0] = true
-            return to
+    static Node convertExprListToNode(Node parent, List list) {
+        Node node = new Node(parent, list[0] as String, [type: typeMap[list[0]]])
+        for (int i = 1; i < list.size(); i++) {
+            switch (list[i]) {
+                case List:
+                    convertExprListToNode(node, list[i] as List)
+                    break
+                case String:
+                    new Node(node, list[i] as String, [type: typeMap[list[i]]])
+                    break
+            }
         }
-        switch (expr) {
-            case String:
-                return expr
-            case List:
-                int idx = 0
-                return expr.collect { idx++ == 0 ? it : replaceNode(it, from, to, replaced) }
-            default:
-                return null
-        }
+        return node
     }
 }
