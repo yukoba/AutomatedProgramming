@@ -1,3 +1,4 @@
+import com.sun.org.apache.xpath.internal.axes.ChildIterator
 import groovy.transform.TypeChecked
 
 import static Sort5Exprs.*
@@ -6,13 +7,15 @@ import static Sort5Exprs.*
 class Sort5 {
     static final NodePrinter nodePrinter = new NodePrinter()
 
+    static boolean isDebug = false
+
     static void main(String[] args) {
         // exprTexts -> eqs
         def eqs = exprTexts.collect { eqToNode((it as String).split("==").collect { convertExpr(it as String) }) }
         // 一番最後の式が証明対象
-        def target = eqs.last()
+        def target = eqs.remove(eqs.size() - 1)
 
-        for (int k = 0; k < 1; k++) {
+        for (int k = 0; k < 2; k++) {
             def newTargetCreated = false
 
             // if (A) { B } の B の中に A = true を入れる
@@ -122,13 +125,16 @@ class Sort5 {
     static List<Closure> convertTermToSearchCond(Node term, int pos = -1) {
         def name = term.name()
         def type = term.attribute("type")
+        int childrenCount = term.children().size()
 
         def conds = []
         if (isVar(name)) {
             if (pos >= 0) {
                 conds << { Node node -> position(node) == pos }
             }
-            if (type != "*") {
+            if (type == "Function") {
+                conds << { Node node -> node.children().size() == childrenCount }
+            } else if (type != "*") {
                 conds << { Node node -> node.attribute("type") == type }
             }
         } else if (isConst(name)) {
@@ -147,7 +153,7 @@ class Sort5 {
         def children = term.children()
         for (int i = 0; i < children.size(); i++) {
             def childConds = convertTermToSearchCond(children[i] as Node, i)
-            def i2 = i as int // クロージャーにバインドさせるため、新しいインスタンスを作成
+            def i2 = i // クロージャーにバインドさせるため、新しい変数を使用
             conds << { Node node -> isAllTrue(childConds, node.children()[i2]) }
         }
 
@@ -158,14 +164,24 @@ class Sort5 {
     static boolean fillVar2node(Map var2node, Node from, Node found) {
         def fromName = from.name()
         if (isVar(fromName)) {
-            if (fromName in var2node) {
-                if ((var2node[fromName] as String) != (found as String)) {
-                    return false
+            if (from.attribute("type") == "Function") {
+                if (fromName in var2node) {
+                    if (var2node[fromName] != found.name()) {
+                        return false
+                    }
+                } else {
+                    var2node[fromName] = found.name()
                 }
             } else {
-                var2node[fromName] = found // TODO 変数を2回使っている場合、未対応
+                if (fromName in var2node) {
+                    if ((var2node[fromName] as String) != (found as String)) {
+                        return false
+                    }
+                } else {
+                    var2node[fromName] = found // 変数を2回使っている場合、未対応
+                }
+                return true
             }
-            return true
         }
 
         def fromChildren = from.children()
@@ -181,20 +197,28 @@ class Sort5 {
 
     /** var2nodeを使って term の変数を置き換えた新しい Node を作成。 */
     static Node replaceVar(Node term, Map var2node) {
+        def result
         def termName = term.name()
         if (isVar(termName)) {
             // 変数を置き換える
-            return (termName in var2node ? var2node[termName]: term).clone() as Node
+            if (termName in var2node) {
+                if (var2node[termName] instanceof String) {
+                    result = new Node(null, var2node[termName], [type: typeMap[var2node[termName] as String]])
+                } else {
+                    return var2node[termName].clone() as Node
+                }
+            } else {
+                return term.clone() as Node
+            }
         } else {
             // 子供のない浅いコピーを作る
-            def result = new Node(null, termName, term.attributes().clone())
-
-            // 子供を埋める
-            for (def child in term.children()) {
-                result.append(replaceVar(child as Node, var2node))
-            }
-            return result
+            result = new Node(null, termName, term.attributes().clone())
         }
+        // 子供を埋める
+        for (def child in term.children()) {
+            result.append(replaceVar(child as Node, var2node))
+        }
+        return result
     }
 
     /** target に対して、fromTerm -> toTerm の変形を施す */
@@ -212,7 +236,7 @@ class Sort5 {
             if (!isOK) continue
 
             // var2node を使って、変換先のノードを作る
-            def newTerm = replaceVar(toTerm, var2node)
+            def newTerm = fillIfType(replaceVar(toTerm, var2node))
 
             // 差し替える
             swapNode(found, newTerm)
@@ -257,7 +281,7 @@ class Sort5 {
 
     // -----------------------------------------------------------------------------------------
 
-    static Node convertExpr(String s) { convertExprListToNode(null, convertExprTextToList(removeSpace(s))) }
+    static Node convertExpr(String s) { fillIfType(convertExprListToNode(null, convertExprTextToList(removeSpace(s)))) }
 
     static List convertExprTextToList(String s) {
         List list = []
@@ -299,6 +323,15 @@ class Sort5 {
         return node
     }
 
+    static Node fillIfType(Node node) {
+        for (Node n in (node.depthFirst() as List<Node>)) {
+            if (n.name() == "if") {
+                n.attributes()["type"] = (n.children()[1] as Node).attribute("type")
+            }
+        }
+        return node
+    }
+
     static void println(Node node) { nodePrinter.print(node) }
 
     static String removeSpace(String s) { s.replaceAll(' ', '') }
@@ -310,6 +343,10 @@ class Sort5 {
     }
 
     static void swapNode(Node node1, Node node2) {
+        def name1 = node1.name()
+        node1.name = node2.name()
+        node2.name = name1
+
         def attributes1 = node1.attributes()
         def attributes2 = node2.attributes()
         def attributes2clone = node2.attributes().clone()
@@ -319,13 +356,24 @@ class Sort5 {
         attributes1.clear()
         attributes1.putAll(attributes2clone as Map)
 
-        def value1 = node1.value()
-        node1.value = node2.value()
-        node2.value = value1
+//        def value1 = node1.value()
+//        node1.value = node2.value()
+//        node2.value = value1
 
-        def name1 = node1.name()
-        node1.name = node2.name()
-        node2.name = name1
+        def node1children = [] as List<Node>
+        def node2children = [] as List<Node>
+        node1children.addAll(node1.children())
+        node2children.addAll(node2.children())
+        for (Node n in node1children) {
+            node1.remove(n)
+        }
+        for (Node n in node2children) {
+            node2.remove(n)
+            node1.append(n)
+        }
+        for (Node n in node1children) {
+            node2.append(n)
+        }
     }
 
     static boolean isAllTrue(List<Closure> list, def node) {
@@ -336,7 +384,7 @@ class Sort5 {
         return true
     }
 
-    static int position(Node node) { node.parent().children().indexOf(node) }
+    static int position(Node node) { node.parent() == null ? 0 : node.parent().children().indexOf(node) }
 
     static boolean isVar(s) { s in vars }
 

@@ -88,8 +88,40 @@ class Sort5Test {
         println "isOK = $isOK"
         var2node.each { key, value -> print "$key: "; println value }
 
-        def node4 = replaceVar(node3, var2node)
+        def node4 = fillIfType(replaceVar(node3, var2node))
         print "node4 = "
+        println node4
+    }
+
+    @Test
+    void testConvertTermToSearchCond2() {
+        def expr1 = "f0(if(b0, any1, any2))"
+        def expr2 = "isSorted(if(TRUE, list0, list1))"
+        def expr3 = "if(b0, f0(any1), f0(any2))"
+        def node1 = convertExpr(expr1)
+        def node2 = convertExpr(expr2)
+        def node3 = convertExpr(expr3)
+
+        print "node1 = "; println node1
+        print "node2 = "; println node2
+        print "node3 = "; println node3
+
+        println "--------------------------------------"
+        def searchCond = convertTermToSearchCond(node1)
+        def founds = node2.depthFirst().findAll { isAllTrue(searchCond, it) } as List<Node>
+        for (def found in founds) {
+            println found
+        }
+
+        println "--------------------------------------"
+        def var2node = new HashMap()
+        def isOK = fillVar2node(var2node, node1, node2)
+        println "isOK = $isOK"
+        var2node.each { key, value -> print "$key: "; println value }
+
+        println "--------------------------------------"
+        def node4 = fillIfType(replaceVar(node3, var2node))
+        print "replaceVar = "
         println node4
     }
 }

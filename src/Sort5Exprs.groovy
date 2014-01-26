@@ -29,23 +29,26 @@ class Sort5Exprs {
             "f0(if(b0, any1, any2), any3) == if(b0, f0(any1, any3), f0(any2, any3))",
             "f0(if(b0, any1, any2), any3, any4) == if(b0, f0(any1, any3, any4), f0(any2, any3, any4))",
 
-            // 判定条件
-            "isSorted(list0) == " +
-                    "if(lt(len(list0), 2), TRUE, and(lt(head(tail(list0)), head(list0)), isSorted(tail(list0))))",
-
             // 証明対象
             "sortInner(list0) == " +
                     "if(lt(len(list0), 2), list0, " +
                     "if(lt(head(tail(list0)), head(list0)), " +
                     "list0, " +
                     "append(sortInner(tail(swap(list0))), head(tail(list0)))))",
+
+            // 判定条件
+            "isSorted(list0) == " +
+                    "if(lt(len(list0), 2), TRUE, and(lt(head(tail(list0)), head(list0)), isSorted(tail(list0))))",
+
+            // target
+            "isSorted(sortInner(list0)) == TRUE"
     ]
 
     static final Map typeMap = [
             sortInner: "List",
             isSorted: "Boolean",
 
-            if: "Boolean",
+            if: "*",
             tail: "List",
             head: "Element",
             TRUE: "Boolean",
