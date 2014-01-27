@@ -19,14 +19,14 @@ class Sort5 {
         // exprTexts -> eqs
         def eqs = exprTexts.collect { eqTextToNode(it as String) }
 
-        for (int k = 0; k < 2; k++) {
+        for (int k = 0; k < 50; k++) {
             def newTargetCreated = false
 
             // if (A) { B } の B の中に A = true を入れる
             if (!newTargetCreated) {
                 def newTargets = findAndRemoveSameCondInIf(target)
                 if (newTargets.size() > 0) {
-                    println "if の条件を true/false に置換しました"
+                    println "${k + 1}回目：if の条件を true/false に置換しました"
                     target = newTargets[0]
                     newTargetCreated = true
                 }
@@ -38,7 +38,7 @@ class Sort5 {
                     def eq = eqs[i]
                     def newTargets = replaceByEq(target, eq.children()[0] as Node, eq.children()[1] as Node)
                     if (newTargets.size() > 0) {
-                        println "下記の式を代入"
+                        println "${k + 1}回目：下記の式を代入"
                         println eq
                         target = newTargets[0]
                         newTargetCreated = true
@@ -48,7 +48,7 @@ class Sort5 {
             }
 
             if (!newTargetCreated) {
-                println "これ以上式変形が出来ません。k = $k"
+                println "${k + 1}回目：これ以上式変形が出来ません"
                 break
             }
 
@@ -62,8 +62,6 @@ class Sort5 {
                 break
             }
         }
-
-        println "終了"
     }
 
     /** 矛盾を探す */
@@ -149,6 +147,8 @@ class Sort5 {
     static List<Node> replaceByEq(Node target, Node fromTerm, Node toTerm) {
         def eqs = []
         for (Node targetChild in (target.depthFirst() as List<Node>)) {
+            if (targetChild.name() == "eq") continue
+
             // 変数を埋める
             def var2node = new HashMap()
             def isMatch = fillVar2node(var2node, fromTerm, targetChild)
