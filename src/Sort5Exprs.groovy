@@ -2,8 +2,8 @@ import groovy.transform.TypeChecked
 
 @TypeChecked
 class Sort5Exprs {
-    /** 証明対象 */
-    static final String targetText = "isSorted(sortInner(list0)) == TRUE"
+    /** 証明対象。背理法を使い、この矛盾を示す。本来は右辺はTRUE。 */
+    static final String targetText = "isSorted(sortInner(list0)) == FALSE"
 
     static final List exprTexts = [
             // 公式・定義・公理

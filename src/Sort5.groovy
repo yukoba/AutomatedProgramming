@@ -76,10 +76,9 @@ class Sort5 {
     /** 矛盾を探す */
     static boolean hasContradiction(List<Node> targets) {
         for (def target in targets) {
-            def children = target.children()
-            if ((children[0] as String) == (children[1] as String)) {
-                return true
-            }
+            def children = target.children() as List<Node>
+            if (children[0].name() == "FALSE" && children[1].name() == "TRUE") return true
+            if (children[1].name() == "FALSE" && children[0].name() == "TRUE") return true
         }
         return false
     }
