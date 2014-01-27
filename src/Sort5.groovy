@@ -78,6 +78,15 @@ class Sort5 {
 
     // ------------------------------------------------------------------------------------------------------------
 
+    static List<Node> findAndRemoveSameCondInIf(Node target) {
+        def newTargets = []
+        def ifTerms = target.breadthFirst().findAll { Node n -> n.name() == "if" }
+        for (def ifTerm in ifTerms) {
+            newTargets.addAll(removeSameCondInIf(target, ifTerm as Node))
+        }
+        return newTargets
+    }
+
     /** if (A) { B } の時、A と同じ物が B の中に現れたら TRUE, FALSE に置き換える */
     static List<Node> removeSameCondInIf(Node target, Node ifTerm) {
         def newTargets = []
@@ -117,15 +126,6 @@ class Sort5 {
                 replaceThenTerm(ifCondStr, child as Node, replaceTo, target, newTargets)
             }
         }
-    }
-
-    static List<Node> findAndRemoveSameCondInIf(Node target) {
-        def founds = target.depthFirst().findAll { Node n -> n.name() == "if" }.clone() as List<Node>
-        def newTargets = []
-        for (Node found in founds) {
-            newTargets.addAll(removeSameCondInIf(target, found))
-        }
-        return newTargets
     }
 
     /**
