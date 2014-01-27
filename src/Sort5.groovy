@@ -45,7 +45,8 @@ class Sort5 {
                 for (int i = 0; i < eqs.size(); i++) {
                     def eq = eqs[i]
                     def newTargets = replaceByEq(target, eq.children()[0] as Node, eq.children()[1] as Node,
-                            i == eqs.size() - 2) // TODO ずる：頭の isSorted を置換されると困る
+                            false)
+//                            i == eqs.size() - 2) // TODO ずる：頭の isSorted を置換されると困る
                     if (newTargets.size() > 0) {
                         println "${k + 1}回目：下記の式を代入"
                         println eq

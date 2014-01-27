@@ -16,6 +16,7 @@ class Sort5Exprs {
 
             // リストに要素を追加したら長さは2以上になる
             "lt(len(append(e0, list0)), 2) == FALSE",
+            "len(sortInner(list0)) == len(list0)",
 
             // head, tail の定義
             "head(append(e0, list0)) == e0",
