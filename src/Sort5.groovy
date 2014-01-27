@@ -3,6 +3,14 @@ import groovy.transform.TypeChecked
 import static Sort5Exprs.*
 
 /**
+ * Sort5 では挿入ソートの内側ループの証明をやっています。
+ *
+ * sort4.html と比較して、以下の点が改良されています。
+ * 1. XPath を使用していたのを廃止して、普通に木構造をたどっています。
+ * 2. if の親関数を子関数に繰り込むのに特殊な処理をしていません。
+ * 3. 与える式が XML から文字列になり、読みやすくなっています。
+ * 4. tail と head の定義がおかしかったので、逆にしました。
+ *
  * 注意：本来 Node の子供は Node, String が取れるのですが、Node しか使用しないというルールでコードを書いています。
  *
  * 各 Node は以下の３つの情報を持っています。
@@ -59,7 +67,7 @@ class Sort5 {
 
             // 矛盾チェック
             if (hasContradiction([target])) {
-                println "成功：背理法で矛盾を発見！式変形の回数は ${k + 1}回です。"
+                println "成功：背理法で矛盾を発見！式変形の回数は ${k + 1} 回です。"
                 break
             }
         }
