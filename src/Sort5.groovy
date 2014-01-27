@@ -1,4 +1,3 @@
-import com.sun.org.apache.xpath.internal.axes.ChildIterator
 import groovy.transform.TypeChecked
 
 import static Sort5Exprs.*
@@ -6,8 +5,6 @@ import static Sort5Exprs.*
 @TypeChecked
 class Sort5 {
     static final NodePrinter nodePrinter = new NodePrinter()
-
-    static boolean isDebug = false
 
     static void main(String[] args) {
         // exprTexts -> eqs
@@ -343,23 +340,21 @@ class Sort5 {
     }
 
     static void swapNode(Node node1, Node node2) {
+        // 名前
         def name1 = node1.name()
         node1.name = node2.name()
         node2.name = name1
 
+        // 属性
         def attributes1 = node1.attributes()
         def attributes2 = node2.attributes()
         def attributes2clone = node2.attributes().clone()
-
         attributes2.clear()
         attributes2.putAll(attributes1)
         attributes1.clear()
         attributes1.putAll(attributes2clone as Map)
 
-//        def value1 = node1.value()
-//        node1.value = node2.value()
-//        node2.value = value1
-
+        // 子供
         def node1children = [] as List<Node>
         def node2children = [] as List<Node>
         node1children.addAll(node1.children())
