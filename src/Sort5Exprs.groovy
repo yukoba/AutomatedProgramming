@@ -89,7 +89,7 @@ class Sort5Exprs {
     static final Set vars = [
             "list0", "list1", "list2", "list3",
             "b0", "b1", "b2", "b3",
-            "e0",
+            "e0", "e1", "e2", "e3",
             "f0",
             "any0", "any1", "any2", "any3"
     ] as Set
