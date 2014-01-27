@@ -44,9 +44,7 @@ class Sort5 {
             if (!newTargetCreated) {
                 for (int i = 0; i < eqs.size(); i++) {
                     def eq = eqs[i]
-                    def newTargets = replaceByEq(target, eq.children()[0] as Node, eq.children()[1] as Node,
-                            false)
-//                            i == eqs.size() - 2) // TODO ずる：頭の isSorted を置換されると困る
+                    def newTargets = replaceByEq(target, eq.children()[0] as Node, eq.children()[1] as Node)
                     if (newTargets.size() > 0) {
                         println "${k + 1}回目：下記の式を代入"
                         println eq
@@ -154,11 +152,9 @@ class Sort5 {
     // ------------------------------------------------------------------------------------------------------------
 
     /** target に対して、fromTerm -> toTerm の変形を施す */
-    static List<Node> replaceByEq(Node target, Node fromTerm, Node toTerm, boolean skipTop = false) {
+    static List<Node> replaceByEq(Node target, Node fromTerm, Node toTerm) {
         def eqs = []
-        def targetDescendants = target.breadthFirst() as List<Node>
-        if (skipTop) targetDescendants = targetDescendants.drop(3) // TODO ずる：頭の isSorted を置換されると困る
-        for (Node targetChild in targetDescendants) {
+        for (Node targetChild in (target.breadthFirst() as List<Node>)) {
             if (targetChild.name() == "eq") continue
 
             // 変数を埋める
