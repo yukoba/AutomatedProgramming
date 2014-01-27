@@ -78,44 +78,45 @@ class Sort5 {
 
     // ------------------------------------------------------------------------------------------------------------
 
-    /** if (A) { B } の時、Bの中にAと同じ物が現れたら true / false に置き換える */
+    /** if (A) { B } の時、A と同じ物が B の中に現れたら TRUE, FALSE に置き換える */
     static List<Node> removeSameCondInIf(Node target, Node ifTerm) {
-        def ifChildren = ifTerm.children() as List<Node>
-        def ifCond = ifChildren[0]
-        if (ifCond.name() == "TRUE" || ifCond.name() == "FALSE") return []
-
-        def ifCondStr = ifCond as String
         def newTargets = []
 
-        Closure replace = null
-        replace = { Node thenTerm, boolean replaceToValue, boolean mustBeContains ->
-            def thenTermStr = thenTerm as String
-            if (thenTermStr == ifCondStr) {
-                // 定数項に置換
-                def constTerm = new Node(null, replaceToValue.toString().toUpperCase(), [type: "Boolean"])
-                swapNode(thenTerm, constTerm)
-                newTargets << target.clone()
-                swapNode(thenTerm, constTerm)
-            } else {
-                if (mustBeContains || thenTermStr.contains(ifCondStr)) {
-                    // 子供をたどる
-                    thenTerm.children().each { replace(it as Node, replaceToValue, true) }
-                }
-            }
-        }
-        replace(ifChildren[1], true, false)
-        replace(ifChildren[2], false, false)
+        def ifChildren = ifTerm.children() as List<Node>
+        def ifCond = ifChildren[0]
+        if (ifCond.name() == "TRUE" || ifCond.name() == "FALSE") return newTargets
+        def ifCondStr = ifCond as String
 
-        // 否定形で置換を行う
+        // 肯定系で置換
+        replaceThenTerm(ifCondStr, ifChildren[1], "TRUE", target, newTargets)
+        replaceThenTerm(ifCondStr, ifChildren[2], "FALSE", target, newTargets)
+
+        // 否定形で置換
         def negateIfCond = negate(ifCond)
         if (negateIfCond != null) {
-            ifCond = negateIfCond
-            ifCondStr = ifCond as String
-            replace(ifChildren[1], false, false)
-            replace(ifChildren[2], true, false)
+            def negateIfCondStr = negateIfCond as String
+            replaceThenTerm(negateIfCondStr, ifChildren[1], "FALSE", target, newTargets)
+            replaceThenTerm(negateIfCondStr, ifChildren[2], "TRUE", target, newTargets)
         }
 
         return newTargets
+    }
+
+    /** if の条件が then の中に見つかったら replaceTo に置き換える */
+    static void replaceThenTerm(String ifCondStr, Node thenTerm, String replaceTo, Node target, List newTargets) {
+        def thenTermStr = thenTerm as String
+        if (thenTermStr == ifCondStr) {
+            // 定数項に置換
+            def constTerm = new Node(null, replaceTo, [type: "Boolean"])
+            swapNode(thenTerm, constTerm)
+            newTargets << target.clone()
+            swapNode(thenTerm, constTerm)
+        } else if (thenTermStr.contains(ifCondStr)) {
+            // 子供をたどる
+            for (def child in thenTerm.children()) {
+                replaceThenTerm(ifCondStr, child as Node, replaceTo, target, newTargets)
+            }
+        }
     }
 
     static List<Node> findAndRemoveSameCondInIf(Node target) {
