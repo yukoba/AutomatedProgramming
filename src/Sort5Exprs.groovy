@@ -6,26 +6,26 @@ class Sort5Exprs {
     static final String targetText = "isSorted(sortInner(list0)) == TRUE"
 
     static final List exprTexts = [
-            "isSorted(tail(list0)) == TRUE",
-            "lt(head(tail(tail(list0))), head(tail(list0))) == TRUE",
-            "isSorted(sortInner(tail(list0))) == TRUE",
-            "isSorted(sortInner(tail(swap(list0)))) == TRUE",
-
             // 公式・定義・公理
-            "head(tail(swap(list0))) == head(list0)",
-            "tail(tail(swap(list0))) == tail(tail(list0))",
-
-            "tail(append(e0, list0)) == list0",
-            "head(append(e0, list0)) == e0",
-
-            "lt(len(append(e0, list0)), 2) == TRUE",
-
-            "if(TRUE, any0, any1) == any0",
-            "if(FALSE, any0, any1) == any1",
-            "if(b0, any0, any0) == any0",
-
-            "and(b0, TRUE) == b0",
             "and(TRUE, b0) == b0",
+            "and(b0, TRUE) == b0",
+
+            "if(b0, any0, any0) == any0",
+            "if(FALSE, any0, any1) == any1",
+            "if(TRUE, any0, any1) == any0",
+
+            "lt(len(append(e0, list0)), 2) == FALSE",
+
+            "head(append(e0, list0)) == e0",
+            "tail(append(e0, list0)) == list0",
+
+            "tail(tail(swap(list0))) == tail(tail(list0))",
+            "head(tail(swap(list0))) == head(list0)",
+
+            "isSorted(sortInner(tail(swap(list0)))) == TRUE",
+            "isSorted(sortInner(tail(list0))) == TRUE",
+            "lt(head(tail(tail(list0))), head(tail(list0))) == TRUE",
+            "isSorted(tail(list0)) == TRUE",
 
             // if の親関数を if の中に入れる
             "f0(if(b0, any1, any2)) == if(b0, f0(any1), f0(any2))",
@@ -41,7 +41,7 @@ class Sort5Exprs {
                     "if(lt(len(list0), 2), list0, " +
                     "if(lt(head(tail(list0)), head(list0)), " +
                     "list0, " +
-                    "append(sortInner(tail(swap(list0))), head(tail(list0)))))",
+                    "append(head(tail(list0)), sortInner(tail(swap(list0))))))",
     ]
 
     static final Map typeMap = [
@@ -89,6 +89,7 @@ class Sort5Exprs {
     static final Set vars = [
             "list0", "list1", "list2", "list3",
             "b0", "b1", "b2", "b3",
+            "e0",
             "f0",
             "any0", "any1", "any2", "any3"
     ] as Set
