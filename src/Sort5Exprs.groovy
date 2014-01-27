@@ -2,6 +2,9 @@ import groovy.transform.TypeChecked
 
 @TypeChecked
 class Sort5Exprs {
+    /** 証明対象 */
+    static final String targetText = "isSorted(sortInner(list0)) == TRUE"
+
     static final List exprTexts = [
             "isSorted(tail(list0)) == TRUE",
             "lt(head(tail(tail(list0))), head(tail(list0))) == TRUE",
@@ -39,9 +42,6 @@ class Sort5Exprs {
             // 判定条件
             "isSorted(list0) == " +
                     "if(lt(len(list0), 2), TRUE, and(lt(head(tail(list0)), head(list0)), isSorted(tail(list0))))",
-
-            // target
-            "isSorted(sortInner(list0)) == TRUE"
     ]
 
     static final Map typeMap = [

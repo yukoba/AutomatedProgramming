@@ -15,10 +15,9 @@ class Sort5 {
     static final NodePrinter nodePrinter = new NodePrinter()
 
     static void main(String[] args) {
+        def target = eqTextToNode(targetText)
         // exprTexts -> eqs
-        def eqs = exprTexts.collect { eqToNode((it as String).split("==").collect { convertExpr(it as String) }) }
-        // 一番最後の式が証明対象
-        def target = eqs.remove(eqs.size() - 1)
+        def eqs = exprTexts.collect { eqTextToNode(it as String) }
 
         for (int k = 0; k < 2; k++) {
             def newTargetCreated = false
@@ -331,9 +330,10 @@ class Sort5 {
 
     static String removeSpace(String s) { s.replaceAll(' ', '') }
 
-    static Node eqToNode(List<Node> list) {
+    /** 文字列形式の等式を Node に変換 */
+    static Node eqTextToNode(String eqText) {
         Node node = new Node(null, "eq")
-        list.each { node.append(it as Node) }
+        eqText.split("==").each { node.append(convertExpr(it as String)) }
         return node
     }
 
