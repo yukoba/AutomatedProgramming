@@ -14,14 +14,18 @@ class Sort5Exprs {
             "if(FALSE, any0, any1) == any1",
             "if(TRUE, any0, any1) == any0",
 
+            // リストに要素を追加したら長さは2以上になる
             "lt(len(append(e0, list0)), 2) == FALSE",
 
+            // head, tail の定義
             "head(append(e0, list0)) == e0",
             "tail(append(e0, list0)) == list0",
 
+            // swap の定義。swap は最初の2要素の入れ替え。
             "tail(tail(swap(list0))) == tail(tail(list0))",
             "head(tail(swap(list0))) == head(list0)",
 
+            // 数学的帰納法の前提条件
             "isSorted(sortInner(tail(swap(list0)))) == TRUE",
             "isSorted(sortInner(tail(list0))) == TRUE",
             "lt(head(tail(tail(list0))), head(tail(list0))) == TRUE",
@@ -36,7 +40,7 @@ class Sort5Exprs {
             "isSorted(list0) == " +
                     "if(lt(len(list0), 2), TRUE, and(lt(head(tail(list0)), head(list0)), isSorted(tail(list0))))",
 
-            // 証明対象
+            // 証明したい関数
             "sortInner(list0) == " +
                     "if(lt(len(list0), 2), list0, " +
                     "if(lt(head(tail(list0)), head(list0)), " +
