@@ -263,34 +263,34 @@ class Sort5 {
     static Node convertExpr(String s) { fillIfType(convertExprListToNode(null, convertExprTextToList(removeSpace(s)))) }
 
     static List convertExprTextToList(String s) {
-        List list = []
+        def list = []
         int start = s.indexOf('(')
         if (start == -1) return [s]
         int end = s.lastIndexOf(')')
-        list.add(s[0..(start - 1)])
+        list << s[0..<start]
 
         int bracketCount = 0
-        StringBuilder sb = new StringBuilder()
+        def sb = new StringBuilder()
         for (int i = start + 1; i < end; i++) {
             switch (s[i]) {
-                case "(": bracketCount++; sb.append(s[i]); break;
-                case ")": bracketCount--; sb.append(s[i]); break;
+                case "(": bracketCount++; sb << s[i]; break;
+                case ")": bracketCount--; sb << s[i]; break;
                 case ",":
                     if (bracketCount == 0) {
-                        list.add(convertExprTextToList(sb.toString()))
+                        list << convertExprTextToList(sb.toString())
                         sb = new StringBuilder()
                     } else {
-                        sb.append(s[i])
+                        sb << s[i]
                     }
                     break
                 default:
-                    sb.append(s[i])
+                    sb << s[i]
                     break
             }
         }
         assert bracketCount == 0
         if (sb.size() > 0)
-            list.add(convertExprTextToList(sb.toString()))
+            list << convertExprTextToList(sb.toString())
         return list
     }
 
