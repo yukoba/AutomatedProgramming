@@ -22,6 +22,10 @@ import static Sort5Exprs.*
 class Sort5 {
     static final NodePrinter nodePrinter = new NodePrinter()
 
+    static {
+        addNodeEqualsHashCode()
+    }
+
     static void main(String[] args) {
         def target = eqTextToNode(targetText)
         // exprTexts -> eqs
@@ -100,36 +104,33 @@ class Sort5 {
         def ifChildren = ifTerm.children() as List<Node>
         def ifCond = ifChildren[0]
         if (ifCond.name() == "TRUE" || ifCond.name() == "FALSE") return newTargets
-        def ifCondStr = ifCond as String
 
         // 肯定系で置換
-        replaceThenTerm(ifCondStr, ifChildren[1], "TRUE", target, newTargets)
-        replaceThenTerm(ifCondStr, ifChildren[2], "FALSE", target, newTargets)
+        replaceThenTerm(ifCond, ifChildren[1], "TRUE", target, newTargets)
+        replaceThenTerm(ifCond, ifChildren[2], "FALSE", target, newTargets)
 
         // 否定形で置換
         def negateIfCond = negate(ifCond)
         if (negateIfCond != null) {
-            def negateIfCondStr = negateIfCond as String
-            replaceThenTerm(negateIfCondStr, ifChildren[1], "FALSE", target, newTargets)
-            replaceThenTerm(negateIfCondStr, ifChildren[2], "TRUE", target, newTargets)
+            replaceThenTerm(negateIfCond, ifChildren[1], "FALSE", target, newTargets)
+            replaceThenTerm(negateIfCond, ifChildren[2], "TRUE", target, newTargets)
         }
 
         return newTargets
     }
 
     /** if の条件が then の中に見つかったら replaceTo に置き換える */
-    static void replaceThenTerm(String ifCondStr, Node thenTerm, String replaceTo, Node target, List newTargets) {
-        def thenTermStr = thenTerm as String
-        if (thenTermStr == ifCondStr) {
+    static void replaceThenTerm(Node ifCond, Node thenTerm, String replaceTo, Node target, List newTargets) {
+        if (thenTerm == ifCond) {
             // 定数項に置換
             def constTerm = new Node(null, replaceTo, [type: "Boolean"])
             swapNode(thenTerm, constTerm)
             newTargets << target.clone()
             swapNode(thenTerm, constTerm)
-        } else if (thenTermStr.contains(ifCondStr)) {
+        } else {
             // 子供をたどる
             for (def child in thenTerm.children()) {
-                replaceThenTerm(ifCondStr, child as Node, replaceTo, target, newTargets)
+                replaceThenTerm(ifCond, child as Node, replaceTo, target, newTargets)
             }
         }
     }
@@ -174,7 +175,7 @@ class Sort5 {
         }
 
         // ユニーク化して返す
-        return uniqueNodes(eqs)
+        return (eqs as Set) as List
     }
 
     /** pattern が target に適合するかどうか調べながら、var2node を埋める。戻り値はパターンマッチしたかどうか。 */
@@ -195,7 +196,7 @@ class Sort5 {
                 // パターン側で子供なし
                 if (patternName in var2node) {
                     // 変数が使用済みなら内容は同一でないといけない
-                    if ((var2node[patternName] as String) != (target as String)) return false
+                    if (var2node[patternName] != target) return false
                 } else {
                     // 変数に target の子 Node 含め全て代入
                     var2node[patternName] = target
@@ -255,20 +256,6 @@ class Sort5 {
             result.append(replaceVar(child as Node, var2node))
         }
         return result
-    }
-
-    /** ノードの List に対して、各ノードを文字列化して、重複するのを除去して、ユニークな集合にする */
-    static List uniqueNodes(List nodes) {
-        def hash = new HashSet()
-        def list = []
-        for (def node in nodes) {
-            def str = node as String
-            if (!(str in hash)) {
-                hash << str
-                list << node
-            }
-        }
-        return list
     }
 
     // ------------------------------------------------------------------------------------------------------------
@@ -377,6 +364,25 @@ class Sort5 {
         }
 
         // Node の String value は使用しないので swap しない
+    }
+
+    /** Node の equals(), hashCode() 追加 */
+    static void addNodeEqualsHashCode() {
+        Node.metaClass["equals"] = { Node other ->
+            def me = delegate as Node
+            if (me.name() != other.name()) return false
+            if (me.attribute("type") != other.attribute("type")) return false
+            if (me.children().size() != other.children().size()) return false
+            for (int i = 0; i < me.children().size(); i++) {
+                if (me.children()[i] != other.children()[i]) return false
+            }
+            return true
+        }
+
+        Node.metaClass["hashCode"] = { ->
+            def me = delegate as Node
+            return me.name().hashCode() + me.attribute("type").hashCode() + (me.children()*.hashCode().sum() as int)
+        }
     }
 
     static boolean isVar(s) { s in vars }
