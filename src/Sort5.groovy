@@ -2,6 +2,14 @@ import groovy.transform.TypeChecked
 
 import static Sort5Exprs.*
 
+/**
+ * 注意：本来 Node の子供は Node, String が取れるのですが、Node しか使用しないというルールでコードを書いています。
+ *
+ * 各 Node は以下の３つの情報を持っています。
+ * 1. 関数名（name）
+ * 2. 型 (type)
+ * 3. 子供 Node
+ */
 @TypeChecked
 class Sort5 {
     static final NodePrinter nodePrinter = new NodePrinter()
@@ -47,6 +55,7 @@ class Sort5 {
 
             println "変換結果"
             println target
+            println "-----------------------------------------------------------------------------------------------"
 
             // 矛盾チェック
             if (hasContradiction([target])) {
@@ -69,14 +78,7 @@ class Sort5 {
         return false
     }
 
-    static List<Node> findAndRemoveSameCondInIf(Node target) {
-        def founds = target.depthFirst().findAll { Node n -> n.name() == "if" }.clone() as List<Node>
-        def newTargets = []
-        for (Node found in founds) {
-            newTargets.addAll(removeSameCondInIf(target, found))
-        }
-        return newTargets
-    }
+    // ------------------------------------------------------------------------------------------------------------
 
     /** if (A) { B } の時、Bの中にAと同じ物が現れたら true / false に置き換える */
     static List<Node> removeSameCondInIf(Node target, Node ifTerm) {
@@ -118,78 +120,108 @@ class Sort5 {
         return newTargets
     }
 
-    /** Node を検索条件に変換する。検索条件は全て true でないといけない。 */
-    static List<Closure> convertTermToSearchCond(Node term, int pos = -1) {
-        def name = term.name()
-        def type = term.attribute("type")
-        int childrenCount = term.children().size()
-
-        def conds = []
-        if (isVar(name)) {
-            if (pos >= 0) {
-                conds << { Node node -> position(node) == pos }
-            }
-            if (type == "Function") {
-                conds << { Node node -> node.children().size() == childrenCount }
-            } else if (type != "*") {
-                conds << { Node node -> node.attribute("type") == type }
-            }
-        } else if (isConst(name)) {
-            conds << { Node node -> node.name() == name }
-            conds << { Node node -> node.attribute("type") == type }
-            if (pos >= 0) {
-                conds << { Node node -> position(node) == pos }
-            }
-        } else { // 関数
-            conds << { Node node -> node.name() == name }
-            if (pos >= 0) {
-                conds << { Node node -> position(node) == pos }
-            }
+    static List<Node> findAndRemoveSameCondInIf(Node target) {
+        def founds = target.depthFirst().findAll { Node n -> n.name() == "if" }.clone() as List<Node>
+        def newTargets = []
+        for (Node found in founds) {
+            newTargets.addAll(removeSameCondInIf(target, found))
         }
-
-        def children = term.children()
-        for (int i = 0; i < children.size(); i++) {
-            def childConds = convertTermToSearchCond(children[i] as Node, i)
-            def i2 = i // クロージャーにバインドさせるため、新しい変数を使用
-            conds << { Node node -> isAllTrue(childConds, node.children()[i2]) }
-        }
-
-        return conds
+        return newTargets
     }
 
-    /** var2node を埋める。戻り値は var2node の作成に成功したかどうか。 */
-    static boolean fillVar2node(Map var2node, Node from, Node found) {
-        def fromName = from.name()
-        if (isVar(fromName)) {
-            if (from.attribute("type") == "Function") {
-                if (fromName in var2node) {
-                    if (var2node[fromName] != found.name()) {
-                        return false
-                    }
+    /**
+     * TODO ここは、もっと汎用的なパターンマッチングに置き換える必要あり！
+     * a > b -> a < b 要素は == にならないことを利用
+     */
+    static Node negate(Node term) {
+        // lt のみ扱う
+        if (term.name() == "lt") {
+            def termClone = term.clone() as Node
+            termClone.children().reverse(true)
+            return termClone
+        } else {
+            return null
+        }
+    }
+
+    // ------------------------------------------------------------------------------------------------------------
+
+    /** target に対して、fromTerm -> toTerm の変形を施す */
+    static List<Node> replaceByEq(Node target, Node fromTerm, Node toTerm) {
+        def eqs = []
+        for (Node targetChild in (target.depthFirst() as List<Node>)) {
+            // 変数を埋める
+            def var2node = new HashMap()
+            def isMatch = fillVar2node(var2node, fromTerm, targetChild)
+            if (!isMatch) continue
+
+            // var2node を使って、変換先のノードを作る
+            def newTerm = fillIfType(replaceVar(toTerm, var2node))
+
+            // 差し替える
+            swapNode(targetChild, newTerm)
+            // クローンして追加
+            eqs << target.clone()
+            // 元に戻す
+            swapNode(targetChild, newTerm)
+        }
+
+        // ユニーク化して返す
+        return uniqueNodes(eqs)
+    }
+
+    /** pattern が target に適合するかどうか調べながら、var2node を埋める。戻り値はパターンマッチしたかどうか。 */
+    static boolean fillVar2node(Map var2node, Node pattern, Node target) {
+        def patternName = pattern.name()
+        def patternType = pattern.attribute("type")
+        def targetName = target.name()
+        def targetType = target.attribute("type")
+
+        // 型が一致する事を確認
+        if (patternType != "*" && targetType != "*") {
+            if (patternType != targetType) return false
+        }
+
+        if (isVar(patternName)) {
+            // パターン側が変数
+            if (pattern.children().size() == 0) {
+                // パターン側で子供なし
+                if (patternName in var2node) {
+                    // 変数が使用済みなら内容は同一でないといけない
+                    if ((var2node[patternName] as String) != (target as String)) return false
                 } else {
-                    var2node[fromName] = found.name()
+                    // 変数に target の子 Node 含め全て代入
+                    var2node[patternName] = target
                 }
-            } else {
-                if (fromName in var2node) {
-                    if ((var2node[fromName] as String) != (found as String)) {
-                        return false
-                    }
-                } else {
-                    var2node[fromName] = found // 変数を2回使っている場合、未対応
-                }
+
+                // パターンの方で「変数」かつ「子供なし」は target の子供をチェックせずに全て変数に代入
                 return true
+            } else {
+                // パターン側で子供あり。その場合は、var2node には関数名だけを String で入れる。
+                if (patternName in var2node) {
+                    // 変数が使用済みなら内容は同一でないといけない
+                    if (var2node[patternName] != target.name()) return false
+                } else {
+                    var2node[patternName] = target.name()
+                }
+
+                // パターンの子供も全てマッチすることをこの後チェック
             }
+        } else {
+            // パターン側が定数もしくは関数
+            if (patternName != targetName) return false
         }
 
-        def fromChildren = from.children()
-        def foundChildren = found.children()
-        if (fromChildren.size() != foundChildren.size()) return false
-        for (int i = 0; i < fromChildren.size(); i++) {
-            def isOK = fillVar2node(var2node, fromChildren[i] as Node, foundChildren[i] as Node)
-            if (!isOK) return false
+        // 子供のパターンマッチング
+        def patternChildren = pattern.children() as List<Node>
+        def targetChildren = target.children() as List<Node>
+        if (patternChildren.size() != targetChildren.size()) return false
+        for (int i = 0; i < patternChildren.size(); i++) {
+            def isMatch = fillVar2node(var2node, patternChildren[i], targetChildren[i])
+            if (!isMatch) return false
         }
 
-        return true // 成功
+        return true // マッチした
     }
 
     /** var2nodeを使って term の変数を置き換えた新しい Node を作成。 */
@@ -218,35 +250,6 @@ class Sort5 {
         return result
     }
 
-    /** target に対して、fromTerm -> toTerm の変形を施す */
-    static List<Node> replaceByEq(Node target, Node fromTerm, Node toTerm) {
-        // fromTerm を 条件群 に変換する
-        def searchCond = convertTermToSearchCond(fromTerm)
-        // 変換元を探す
-        def founds = target.depthFirst().findAll { isAllTrue(searchCond, it) } as List<Node>
-
-        def eqs = []
-        for (def found in founds) {
-            // 変数を埋める
-            def var2node = new HashMap()
-            def isOK = fillVar2node(var2node, fromTerm, found)
-            if (!isOK) continue
-
-            // var2node を使って、変換先のノードを作る
-            def newTerm = fillIfType(replaceVar(toTerm, var2node))
-
-            // 差し替える
-            swapNode(found, newTerm)
-            // クローンして追加
-            eqs << target.clone()
-            // 元に戻す
-            swapNode(found, newTerm)
-        }
-
-        // ユニーク化して返す
-        return uniqueNodes(eqs)
-    }
-
     /** ノードの List に対して、各ノードを文字列化して、重複するのを除去して、ユニークな集合にする */
     static List uniqueNodes(List nodes) {
         def hash = new HashSet()
@@ -261,22 +264,7 @@ class Sort5 {
         return list
     }
 
-    /**
-     * TODO ここは、もっと汎用的なパターンマッチングに置き換える必要あり！
-     * a > b -> a < b 要素は == にならないことを利用
-     */
-    static Node negate(Node term) {
-        // lt のみ扱う
-        if (term.name() == "lt") {
-            def termClone = term.clone() as Node
-            termClone.children().reverse(true)
-            return termClone
-        } else {
-            return null
-        }
-    }
-
-    // -----------------------------------------------------------------------------------------
+    // ------------------------------------------------------------------------------------------------------------
 
     static Node convertExpr(String s) { fillIfType(convertExprListToNode(null, convertExprTextToList(removeSpace(s)))) }
 
@@ -329,7 +317,17 @@ class Sort5 {
         return node
     }
 
+    // ------------------------------------------------------------------------------------------------------------
+
     static void println(Node node) { nodePrinter.print(node) }
+
+    /** Node を読みやすい文字列に変換 */
+    static String node2string(Node node) {
+        def sw = new StringWriter()
+        def np = new NodePrinter(new PrintWriter(sw))
+        np.print(node)
+        return sw.toString()
+    }
 
     static String removeSpace(String s) { s.replaceAll(' ', '') }
 
@@ -369,17 +367,9 @@ class Sort5 {
         for (Node n in node1children) {
             node2.append(n)
         }
-    }
 
-    static boolean isAllTrue(List<Closure> list, def node) {
-        if (node == null) return false
-        for (def closure in list) {
-            if (!closure.call(node)) return false
-        }
-        return true
+        // Node の String value は使用しないので swap しない
     }
-
-    static int position(Node node) { node.parent() == null ? 0 : node.parent().children().indexOf(node) }
 
     static boolean isVar(s) { s in vars }
 

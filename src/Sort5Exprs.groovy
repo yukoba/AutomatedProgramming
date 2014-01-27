@@ -78,7 +78,7 @@ class Sort5Exprs {
             e2: "Element",
             e3: "Element",
 
-            f0: "Function",
+            f0: "*",
 
             any0: "*",
             any1: "*",

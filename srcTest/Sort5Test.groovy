@@ -47,21 +47,6 @@ class Sort5Test {
     }
 
     @Test
-    void testConvertTermToSearchCond() {
-        def expr1 = "tail(list0)"
-        def expr2 = "len(tail(list0))"
-        def node1 = convertExpr(expr1)
-        def node2 = convertExpr(expr2)
-
-        def searchCond = convertTermToSearchCond(node1)
-        def founds = node2.depthFirst().findAll { isAllTrue(searchCond, it) } as List<Node>
-        println "[Result]"
-        for (def found in founds) {
-            println found
-        }
-    }
-
-    @Test
     void testFillVar2node() {
         def expr1 = "tail(tail(list0))"
         def expr2 = "tail(any0)"
@@ -72,6 +57,13 @@ class Sort5Test {
         def isOK = fillVar2node(var2node, node2, node1)
         println "isOK = $isOK"
         var2node.each { key, value -> print "$key: "; println value }
+
+        assertEquals true, isOK
+        assertEquals 1, var2node.size()
+        assertEquals """tail(type:'List') {
+  list0(type:'List')
+}
+""", node2string(var2node.any0)
     }
 
     @Test
@@ -105,13 +97,6 @@ class Sort5Test {
         print "node1 = "; println node1
         print "node2 = "; println node2
         print "node3 = "; println node3
-
-        println "--------------------------------------"
-        def searchCond = convertTermToSearchCond(node1)
-        def founds = node2.depthFirst().findAll { isAllTrue(searchCond, it) } as List<Node>
-        for (def found in founds) {
-            println found
-        }
 
         println "--------------------------------------"
         def var2node = new HashMap()
