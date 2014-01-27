@@ -37,7 +37,7 @@ class Sort5 {
                 for (int i = 0; i < eqs.size(); i++) {
                     def eq = eqs[i]
                     def newTargets = replaceByEq(target, eq.children()[0] as Node, eq.children()[1] as Node,
-                            i >= eqs.size() - 3)
+                            i == eqs.size() - 2) // TODO ずる：頭の isSorted を置換されると困る
                     if (newTargets.size() > 0) {
                         println "${k + 1}回目：下記の式を代入"
                         println eq
@@ -129,7 +129,7 @@ class Sort5 {
 
     /**
      * TODO ここは、もっと汎用的なパターンマッチングに置き換える必要あり！
-     * a > b -> a < b 要素は == にならないことを利用
+     * a > b -> a < b 要素は == にならないことを利用し、子ノード２つを入れ替えてる。
      */
     static Node negate(Node term) {
         // lt のみ扱う
@@ -148,7 +148,7 @@ class Sort5 {
     static List<Node> replaceByEq(Node target, Node fromTerm, Node toTerm, boolean skipTop = false) {
         def eqs = []
         def targetDescendants = target.breadthFirst() as List<Node>
-        if (skipTop) targetDescendants = targetDescendants.drop(3) // TODO これはずる
+        if (skipTop) targetDescendants = targetDescendants.drop(3) // TODO ずる：頭の isSorted を置換されると困る
         for (Node targetChild in targetDescendants) {
             if (targetChild.name() == "eq") continue
 
